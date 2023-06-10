@@ -1,0 +1,65 @@
+name: DEV frontend CI
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'frontend/**'
+
+env:
+  IMAGE_NAME: yjring/vote-ui
+  DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  ACCESS_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+
+jobs:
+  dev-frontend-build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Extract version
+      id: extract_version
+      run: echo "::set-output name=VERSION::dev-$(echo ${GITHUB_SHA::6})"
+    
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with: 
+        ref: main
+        token: ${{ env.ACCESS_TOKEN }}
+      
+    - name: Install Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+            
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to DockerHub
+      uses: docker/login-action@v1 
+      with:
+        username: ${{ env.DOCKER_USERNAME }}
+        password: ${{ env.DOCKER_PASSWORD }}
+
+    - name: Build and push
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        context: frontend/
+        dockerfile: Dockerfile
+        push: true
+        tags: ${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.VERSION }}
+
+    - name: Update Kubernetes deployment
+      run: |
+         git pull
+         sed -i 's@image: .*@image: '"${{ env.IMAGE_NAME }}:${{ steps.extract_version.outputs.VERSION }}"'@' ./deploy/dev/ui-deployment.yaml
+
+    - name: Commit changes
+      run: |
+        git config --local user.email "PipelineBot"
+        git config --local user.name "PipelineBot"
+        git add ./deploy/dev/ui-deployment.yaml
+        git commit -m "Update frontend image version to ${{ steps.extract_version.outputs.VERSION }}" -a
+        git push

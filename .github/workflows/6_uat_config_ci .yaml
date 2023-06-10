@@ -1,0 +1,45 @@
+name: Update UAT API ConfigMaps
+
+on:
+  push:
+    tags:
+      - '*'
+    paths:
+      - 'backend/src/main/resources/*'
+
+env:
+  ACCESS_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+
+jobs:
+  update-configmap:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with: 
+          ref: main
+          token: ${{ env.ACCESS_TOKEN }}
+
+      - name: Update redis config
+        run: |
+          sed -i 's|redis://127.0.0.1:6379|redis://vote-api-dev-redis:6379|' backend/src/main/resources/redisson.yml
+          sed -i 's|file: classpath:redisson.yml|file: file:///app/config/redisson.yml|' backend/src/main/resources/application.yml
+
+      - name: Update API ConfigMap
+        run: |
+          git pull
+          kubectl create configmap vote-api-dev-configmap -n default --from-file=backend/src/main/resources/ --dry-run=client -o yaml  > deploy/uat/api-configMap.yaml
+      
+      - name: Update Deployment with Commit SHA
+        run: |
+          COMMIT_SHA=$(git rev-parse --short=6 HEAD)
+          sed -i 's|vote-config-version:.*|vote-config-version: "'$COMMIT_SHA'"|' deploy/uat/api-deployment.yaml
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "PipelineBot"
+          git config --local user.name "PipelineBot"
+          git add ./deploy/uat/api-configMap.yaml ./deploy/uat/api-deployment.yaml
+          git commit -m "Update api-configMap.yaml due to changes in /backend/src/resources"
+          git push origin ${{ github.head_ref }}
