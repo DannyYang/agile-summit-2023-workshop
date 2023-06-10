@@ -1,0 +1,39 @@
+apiVersion: v1
+data:
+  application.yml: "server:\n  port: 8081\n  servlet:\n    context-path: /VoteService\n\nspring:\n
+    \ redis:\n    redisson:\n      file: file:///app/config/redisson.yml\n          \nvote:\n
+    \ question: \"這季NBA冠軍賽，你支持哪一隊呢？\"\n  options:\n    - optionId: \"01\"\n      label:
+    \"金塊\"\n      bgColor: \"#000000\"\n    - optionId: \"02\"\n      label: \"熱火\"\n
+    \     bgColor: \"#FF4500\"\n    - optionId: \"03\"\n      label: \"湖人\"\n      bgColor:
+    \"#552583\"\n    - optionId: \"04\"\n      label: \"勇士\"\n      bgColor: \"#006BB5\"\n
+    \     "
+  logback-spring.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <configuration>
+        <springProperty scope="context" name="serverName" source="HOSTNAME" />
+        <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{sessionId}][%X{clientIp}][%X{token}][%X{companyUid}] %logger{10} line:%L - %msg%n</pattern>
+                <charset>utf8</charset>
+            </encoder>
+        </appender>
+        <root level="info">
+            <appender-ref ref="console" />
+        </root>
+    </configuration>
+  redisson.yml: |-
+    singleServerConfig:
+      address: "redis://vote-api-dev-redis:6379"
+      database: 0
+      connectionMinimumIdleSize: 5
+      connectionPoolSize: 200
+      connectTimeout: 10000
+      timeout: 20000
+      password: dev-redis
+    threads: 8
+    nettyThreads: 32
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: vote-api-dev-configmap
+  namespace: default

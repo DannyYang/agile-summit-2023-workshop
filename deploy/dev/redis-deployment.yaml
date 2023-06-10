@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  labels:
+    app: vote-api-dev-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vote-api-dev-redis
+  template:
+    metadata:
+      labels:
+        app: vote-api-dev-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7.2-rc2-alpine
+        imagePullPolicy: Always
+        args:
+        - -c
+        - redis-server /usr/local/etc/redis/redis.conf --requirepass dev-redis
+        command:
+        - /bin/sh
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "600Mi"
+          limits:
+            cpu: "200m"
+            memory: "600Mi"
+        volumeMounts:
+        - mountPath: /usr/local/etc/redis/redis.conf
+          name: app-config
+          readOnly: true
+          subPath: redis.conf
+      restartPolicy: Always
+      volumes:
+      - name: app-config
+        configMap:
+          defaultMode: 420
+          name: vote-api-dev-redis-configmap

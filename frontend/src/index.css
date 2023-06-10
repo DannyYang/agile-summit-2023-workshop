@@ -1,0 +1,25 @@
+#app {
+    margin: 0 auto;
+}
+#showResult {
+    position: absolute;
+    right: 0;
+    border: 1px solid gray;
+    font-size: 20px;
+}
+#options, #userInfoForm {
+    margin-top:20px;
+    text-align: center;
+}
+#userInfoForm input {
+    border: 1px solid lightgray;
+    font-size: 20px;
+}
+.option {
+    font-size: 50px;
+}
+.option input[type=radio] {
+    border: 0px;
+    width: 2em;
+    height: 2em;
+}

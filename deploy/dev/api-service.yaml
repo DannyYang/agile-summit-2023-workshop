@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: vote-app-dev-svc
+  name: vote-api-dev-svc
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+  selector:
+    app: vote-api-dev
+  sessionAffinity: None
+  type: ClusterIP

@@ -1,0 +1,27 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /VoteService
+
+
+spring:
+  redis:
+    redisson:
+      file: classpath:redisson.yml
+          
+vote:
+  question: "這季NBA冠軍賽，你支持哪一隊呢？"
+  options:
+    - optionId: "01"
+      label: "金塊"
+      bgColor: "#000000"
+    - optionId: "02"
+      label: "熱火"
+      bgColor: "#FF4500"
+    - optionId: "03"
+      label: "湖人"
+      bgColor: "#552583"
+    - optionId: "04"
+      label: "勇士"
+      bgColor: "#006BB6"
+      
