@@ -7,7 +7,7 @@ metadata:
   namespace: default
 spec:
   ports:
-    - name: http
+    - name: tcp
       port: 6379
       protocol: TCP
       targetPort: 6379
