@@ -1,18 +1,13 @@
 import { useMemo } from 'react';
-
-const containerStyle = { 
-    position: 'relative', 
-    display: 'flex', 
-    width: '100%', 
-    height: '50vh' 
-};
+import ProgressLine from '../lib/ProgressLine';
 
 const labelStyle = { 
-    backgroundColor: 'white', 
-    textAlign: 'center'
+    margin: '0 0.5rem',
+    padding: '0 0.25rem',
+    fontSize: '20px'
 };
 
-function ColorfulBackground({ results, options }) {
+function ColorfulBackground({ results, options, isResultApiSuccess }) {
     const { mergedArray, totalCount } = useMemo(() => {
         const array = options.map((option) => {
             const countObject = results.find((result) => result.optionId === option.optionId);
@@ -23,25 +18,45 @@ function ColorfulBackground({ results, options }) {
         return { mergedArray: array, totalCount: count };
     }, [results, options]);
 
-    return results.length != 0 ? (
-        <div style={containerStyle}>
-            {mergedArray.map(({ bgColor, count, label }, index) => {
-                const percent = count ? Math.floor((count / totalCount) * 100) + '%' : '';
-                const blockStyle = {
-                    backgroundColor: bgColor,
-                    flexBasis: `${(count / totalCount) * 100}%`
-                };
-                return (
-                    <div key={index} style={blockStyle}>
-                        <div style={labelStyle}>
-                            {percent}
-                            {count !== 0 && label}
-                        </div>
-                    </div>
-                );
-            })}
+    if (!isResultApiSuccess) {
+        return <div>取得投票結果發生錯誤</div>;
+    }
+
+    if (results.length === 0) {
+        return null;
+    }
+
+    const renderedArray = mergedArray
+        .filter(({ count }) => count > 0)
+        .map(({ bgColor, count, label }) => {
+            const percentage = count ? (count / totalCount) * 100 : 0;
+            return {
+                label,
+                percentage,
+                color: bgColor
+            };
+        });
+    
+    const labelArray = renderedArray
+        .map(({ label, percentage, color }, index) => {
+            const percent = percentage.toFixed(2);
+            return (
+                <span key={index} style={{ 
+                        ...labelStyle, 
+                        borderLeft: '7px solid ' + color }}>
+                    {label} {Number.isInteger(Number(percent)) ? Math.floor(percent) : percent}%
+                </span>
+            );
+        });
+
+    return (<>
+        <ProgressLine
+            visualParts={renderedArray}
+        />
+        <div style={{ textAlign: 'center' }}>
+            {labelArray}
         </div>
-    ) : null;
+    </>);
 }
 
 export default ColorfulBackground;
