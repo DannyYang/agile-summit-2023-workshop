@@ -1,8 +1,12 @@
+import { Button } from '@mui/material';
+
 const ShowResults = ({ onShowResult }) => {
     return (
-        <button id="showResult" onClick={onShowResult}>
-            查看結果
-        </button>
+        <Button variant="contained" size="large"
+            style={{ float: 'right' }}
+            onClick={onShowResult}>
+            直接查看結果
+        </Button>
     );
 }
 

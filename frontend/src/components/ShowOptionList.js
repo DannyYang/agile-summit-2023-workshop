@@ -9,27 +9,32 @@ const ShowOptionList = ({   options, userId, results,
                             onShowResult }) => {
 	const [ records, setRecords ] = useState([]);
     const [ selectedOptionId, setSelectedOptionId ] = useState('');
+    const [ isApiSuccess, setIsApiSuccess ]  = useState(true);
     
     useEffect(() => {
         setSelectedOptionId('');
         getRecords();
     }, [ userId ]);
 
-    const getRecords = async () => {
+    const getRecords = () => {
         if (!userId) {
             return;
         }
         
-        const res = await recordApi(userId);
-        if (res.status != '200') {
-            return;
-        }
-        
-        setRecords([ ...res.data ]);
-        
-        if (res.data.length > 0) {
-            setSelectedOptionId(res.data[res.data.length-1].optionId)
-        }
+        recordApi(userId)
+            .then(res => {
+                if (res.status == '200') {
+                    setIsApiSuccess(true);
+                } else {
+                    setIsApiSuccess(false);
+                    return;
+                }
+
+                setRecords([ ...res.data ]);
+                if (res.data.length > 0) {
+                    setSelectedOptionId(res.data[res.data.length-1].optionId)
+                }
+            });
     };
 
     const handleVoteChange = (optionId) => {
@@ -40,17 +45,23 @@ const ShowOptionList = ({   options, userId, results,
             .then((res) => {
                 if (res.status == '200') {
                     getRecords();
+                    onShowResult();
                 } else {
                     setSelectedOptionId(originalSelectedOptionId);
-                    alert(res.message);
+                    const isDuplicatedVoting = res.status == 'V001';
+                    alert(isDuplicatedVoting 
+                        ? res.message 
+                        : "發生錯誤，無法投票");
+                    if (isDuplicatedVoting) {
+                        onShowResult();
+                    }
                 }
             });
-
-        onShowResult();
     }
     
     useEffect(() => {
-        const isRecordExist = records.length > 0 && records[0].userId == userId;
+        const isRecordExist = records.length > 0 
+            && records[0].userId == userId;
 
         if (isRecordExist) {
             onShowResult();
@@ -70,11 +81,9 @@ const ShowOptionList = ({   options, userId, results,
             onVoteChange={handleVoteChange} />;
     });
     
-    return (
-        <div id="options">
-            {renderedOptions}
-        </div>
-    );
+    return isApiSuccess
+        ? <div>{renderedOptions}</div>
+        : <div>取得投票結果發生錯誤</div>;
 }
 
 export default ShowOptionList;

@@ -10,6 +10,7 @@ spring:
       file: classpath:redisson.yml
           
 vote:
+  canDuplicate: false
   question: "這季NBA冠軍賽，你支持哪一隊呢？"
   options:
     - optionId: "01"

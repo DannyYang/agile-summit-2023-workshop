@@ -3,6 +3,7 @@ package com.webcomm.tw.svc.vote.vote;
 import com.webcomm.tw.svc.vote.cache.CacheKey;
 import com.webcomm.tw.svc.vote.cache.CacheService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ public class VoteService {
     private VoteParams voteParams;
     @Autowired
     private CacheService cacheService;
+    @Value("${vote.canDuplicate:true}")
+    private boolean canDuplicate;
     
     public VoteParams getParams() {
         return voteParams;
@@ -36,8 +39,14 @@ public class VoteService {
                 .collect(Collectors.toList());
     }
 
-    public void vote(VoteRecord record) {
+    public void vote(VoteRecord record) throws VoteException {
         List<VoteRecord> records = getRecords();
+        boolean hasVote = records
+                .stream()
+                .anyMatch(l -> l.getUserId().equals(record.getUserId()));
+        if(!canDuplicate && hasVote){
+            throw new VoteException(VoteRsCode.DUPLICATE_VOTE);
+        }
         records.add(record);
         cacheService.setValue(CacheKey.VOTE, RECORDS, records);
     }

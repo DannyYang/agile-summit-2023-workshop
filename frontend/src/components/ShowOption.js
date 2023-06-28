@@ -1,4 +1,6 @@
 import { throttle } from 'lodash';
+import { FormControlLabel, Radio } from '@mui/material';
+
 import { useEffect } from 'react';
 
 const ShowOption = ({ option, selectedOptionId, onVoteChange }) => {
@@ -9,19 +11,13 @@ const ShowOption = ({ option, selectedOptionId, onVoteChange }) => {
     
     const throttledHandleOnChange = throttle(handleOnChange, 300);
 
-    return (
-        <label htmlFor={option.optionId} className="option">
-            <input
-                type="radio"
-                name="options" 
-                value={option.optionId}
-                id={option.optionId}
-                onChange={throttledHandleOnChange}
-                checked={selectedOptionId == option.optionId}>
-            </input>
-            {option.label}
-        </label>
-    );
+    return (<>
+        <FormControlLabel control={<Radio />} 
+            value={option.optionId}
+            onChange={throttledHandleOnChange}
+            checked={selectedOptionId == option.optionId}
+            label={option.label} />
+    </>);
 };
 
 export default ShowOption;
