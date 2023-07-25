@@ -4,6 +4,7 @@ metadata:
   name: redis-deployment
   labels:
     app: vote-api-dev-redis
+  namespace: default
 spec:
   replicas: 1
   selector:
